@@ -1,8 +1,11 @@
 package pro.sky.attestation.AutomationOfStockAccounting.model;
 
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import javax.persistence.*;
 import java.util.Objects;
 
 
@@ -33,7 +36,7 @@ public class Socks {
     /**
      * процентное содержание хлопка в носках
      */
-    private String cottonPart;
+    private Integer cottonPart;
 
     /**
      * количество пар носков

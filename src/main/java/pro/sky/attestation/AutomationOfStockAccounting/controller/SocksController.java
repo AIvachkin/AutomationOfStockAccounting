@@ -5,12 +5,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import pro.sky.attestation.AutomationOfStockAccounting.model.Color;
 import pro.sky.attestation.AutomationOfStockAccounting.model.Socks;
 import pro.sky.attestation.AutomationOfStockAccounting.service.SocksService;
 
@@ -59,8 +58,20 @@ public class SocksController {
     )
     @PostMapping("/income")
     public ResponseEntity createSocks(@RequestBody Socks socks) {
+
+        if (socks.getQuantity() < 1 || socks.getCottonPart() < 0 || socks.getCottonPart() > 100
+                || !EnumUtils.isValidEnumIgnoreCase(Color.class, socks.getColor())
+        ) {
+            return ResponseEntity.status(400).build();
+        }
+
         Socks createdSocks = socksService.createSocks(socks);
         return ResponseEntity.ok(createdSocks);
+    }
+
+    @GetMapping()
+    public String hello() {
+        return "hello";
     }
 
 }
