@@ -1,14 +1,19 @@
 package pro.sky.attestation.AutomationOfStockAccounting.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
+
+import java.util.Objects;
 
 
 /**
  * Класс - сущность "Носки"
  */
 @Entity
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Socks {
 
     /**
@@ -36,4 +41,24 @@ public class Socks {
     private Integer quantity;
 
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Socks socks = (Socks) o;
+        return Objects.equals(color, socks.color) && Objects.equals(cottonPart, socks.cottonPart);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(color, cottonPart);
+    }
+
+    @Override
+    public String toString() {
+        return "Socks{" +
+                "color='" + color + '\'' +
+                ", cottonPart='" + cottonPart + '\'' +
+                '}';
+    }
 }
