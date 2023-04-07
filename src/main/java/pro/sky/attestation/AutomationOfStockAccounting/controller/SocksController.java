@@ -2,6 +2,7 @@ package pro.sky.attestation.AutomationOfStockAccounting.controller;
 
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -106,9 +107,42 @@ public class SocksController {
     }
 
 
+    @Operation(
+            summary = "Получение общего количества носков на складе, соответствующих полученным параметрам",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "удалось получить общее количество носков по параметрам",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = Socks.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "параметры запроса отсутствуют или имеют некорректный формат"
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "произошла ошибка, не зависящая от вызывающей стороны " +
+                                    "(например, база данных недоступна)."
+                    )
+            },
+            tags = "Socks"
+    )
     @GetMapping()
-    public String hello() {
-        return "hello";
+    public ResponseEntity<Object> hello(@Parameter(description = "цвет носков", example = "red")
+                                        @RequestParam String color,
+                                        @Parameter(description = "операция сравнения", example = "moreThan, lessThan, equal")
+                                        @RequestParam String operation,
+                                        @Parameter(description = "значение процента хлопка", example = "55")
+                                        @RequestParam Integer cottonPart) {
+        if (socksService.checkingQueryParameters(color, operation, cottonPart)) {
+            return ResponseEntity.status(400).build();
+        }
+
+        String numberOfSocks = socksService.returnTheNumberOfSocks(color.toUpperCase(), operation, cottonPart);
+        return ResponseEntity.ok(numberOfSocks);
     }
 
 }

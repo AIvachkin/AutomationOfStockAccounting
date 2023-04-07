@@ -4,13 +4,19 @@ package pro.sky.attestation.AutomationOfStockAccounting.service;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.stereotype.Service;
+import pro.sky.attestation.AutomationOfStockAccounting.exception.OperationNotFoundException;
 import pro.sky.attestation.AutomationOfStockAccounting.exception.SocksNotFoundException;
 import pro.sky.attestation.AutomationOfStockAccounting.model.Color;
+import pro.sky.attestation.AutomationOfStockAccounting.model.Operation;
 import pro.sky.attestation.AutomationOfStockAccounting.model.Socks;
 import pro.sky.attestation.AutomationOfStockAccounting.repository.SocksRepository;
 
+import java.util.List;
 import java.util.Optional;
 
+/**
+ * Сервис для работы с партиями носков
+ */
 @Service
 @Slf4j
 public class SocksService {
@@ -65,6 +71,63 @@ public class SocksService {
         }
     }
 
+
+    /**
+     * Метод возвращает общее количество носков на складе, соответствующих переданным в параметрах критериям запроса
+     *
+     * @param color      цвет носков
+     * @param operation  тип операции сравнения
+     * @param cottonPart значение процента хлопка в составе
+     */
+    public String returnTheNumberOfSocks(String color, String operation, Integer cottonPart) {
+
+        if (!EnumUtils.isValidEnumIgnoreCase(Operation.class, operation)) {
+            log.warn("Invalid comparison operation entered");
+            throw new OperationNotFoundException("Введена недопустимая операция сравнения");
+        }
+        if (operation.equalsIgnoreCase("EQUAL")) {
+            List<Socks> socksList = socksRepository.findSocksByColorAndCottonPartEquals(color, cottonPart);
+            if (!socksList.isEmpty()) {
+                return "Количество носков цвета " + color + " со значением процента хлопка в составе - " + cottonPart +
+                        "% : " + sumSocks(socksList) + " пар";
+            }
+        } else if (operation.equalsIgnoreCase("MORETHAN")) {
+            List<Socks> socksList = socksRepository.findSocksByColorAndCottonPartAfter(color, cottonPart);
+            if (!socksList.isEmpty()) {
+                return "Количество носков цвета " + color + " со значением процента хлопка в составе более " + cottonPart +
+                        "% : " + sumSocks(socksList) + " пар";
+            }
+        } else {
+            List<Socks> socksList = socksRepository.findSocksByColorAndCottonPartBefore(color, cottonPart);
+            if (!socksList.isEmpty()) {
+                return "Количество носков цвета " + color + " со значением процента хлопка в составе менее " + cottonPart +
+                        "% : " + sumSocks(socksList) + " пар";
+            }
+        }
+        return noPosition();
+    }
+
+    /**
+     * Метод суммирует количество носков в коллекции
+     *
+     * @param socksList коллекция носков
+     */
+    public Integer sumSocks(List<Socks> socksList) {
+        return socksList.stream()
+                .map(Socks::getQuantity)
+                .reduce(0, Integer::sum);
+
+    }
+
+    /**
+     * Метод возвращает сообщение об отсутствии искомых позиций на складе
+     *
+     */
+    public String noPosition (){
+        return "Позиций этого цвета с таким содержанием хлопка на складе нет";
+    }
+
+
     /**
      * Метод для проверки корректности прихода параметров запросов по добавлению и отпуску носков
      *
@@ -74,4 +137,17 @@ public class SocksService {
         return (socksBody.getQuantity() < 1 || socksBody.getCottonPart() < 0 || socksBody.getCottonPart() > 100
                 || !EnumUtils.isValidEnumIgnoreCase(Color.class, socksBody.getColor()));
     }
+
+    /**
+     * Метод для проверки корректности прихода параметров запросов по добавлению и отпуску носков
+     *
+     * @param color      цвет носков
+     * @param operation  тип операции сравнения
+     * @param cottonPart значение процента хлопка
+     */
+    public Boolean checkingQueryParameters(String color, String operation, Integer cottonPart) {
+        return (!EnumUtils.isValidEnumIgnoreCase(Operation.class, operation) || cottonPart < 0 || cottonPart > 100
+                || !EnumUtils.isValidEnumIgnoreCase(Color.class, color));
+    }
+
 }
